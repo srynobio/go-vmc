@@ -8,8 +8,19 @@ import (
 	"github.com/brentp/xopen"
 	"log"
 	"os"
-	//	"strings"
 )
+
+type VMC struct {
+	Chromosome      string
+	Interval        string
+	State           string
+	VMCidentifierID string
+	SequenceID      string
+	LocationID      string
+	AlleleID        string
+	HaplotypeID     string
+	GenotypeID      string
+}
 
 func main() {
 	fh, err := xopen.Ropen(os.Args[1])
@@ -18,31 +29,61 @@ func main() {
 
 	rdr, err := vcfgo.NewReader(fh, false)
 	eCheck(err)
+	defer rdr.Close()
+
+	var vb VMC
+
+	// set DummySeqID
+	vb.SequenceID = "VMC:GS_Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
 
 	for {
 		variant := rdr.Read()
 		if variant == nil {
 			break
 		}
-		//interStart := variant.Start() - 1
-		//interEnd := variant.End() + 1
-		altAllele := variant.Alt()
 
+		// Check for alternate alleles.
+		altAllele := variant.Alt()
 		if len(altAllele) > 1 {
-			log.Panicln("vt....Alternative allele found!")
+			log.Panicln("multiallelic variants found, please pre-run vt decomposes.")
 		}
 
-		fmt.Println(altAllele)
+		// Define VMC location
+		vb.Chromosome = variant.Chrom()
+		vb.Interval = fmt.Sprint(variant.Start()-1) + ":" + fmt.Sprint(variant.End()+1)
+		vb.State = altAllele[0]
 
+		vb.LocationID = LocationID(vb)
+		vb.AlleleID = AlleleID(vb)
+
+		fmt.Println(vb)
 	}
-
 }
 
 // ------------------------- //
-func eCheck(p error) {
-	if p != nil {
-		panic(p)
-	}
+// VMC functions
+// ------------------------- //
+
+func LocationID(class VMC) string {
+
+	seqID := class.SequenceID
+	interval := class.Interval
+
+	location := "<Location:<Identifier:" + seqID + ">:<Interval:" + interval + ">>"
+	DigestLocation := DigestId([]byte(location), 24)
+	return "VMC:GL_" + DigestLocation
+}
+
+// ------------------------- //
+
+func AlleleID(class VMC) string {
+
+	vmcLocation := class.LocationID
+	state := class.State
+
+	allele := "<Allele:<Identifier:" + vmcLocation + ">:" + state + ">"
+	DigestAllele := DigestId([]byte(allele), 24)
+	return "VMC:GA_" + DigestAllele
 }
 
 // ------------------------- //
@@ -53,6 +94,14 @@ func DigestId(bv []byte, truncate int) string {
 
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil)[:truncate])
 	return sha
+}
+
+// ------------------------- //
+
+func eCheck(p error) {
+	if p != nil {
+		panic(p)
+	}
 }
 
 // ------------------------- //
