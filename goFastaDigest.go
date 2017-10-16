@@ -1,5 +1,9 @@
 package main
 
+/* Reference info:
+ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/all_assembly_versions/
+*/
+
 import (
 	"crypto/sha512"
 	"encoding/base64"
@@ -7,6 +11,7 @@ import (
 	"github.com/shenwei356/bio/seqio/fastx"
 	"io"
 	"os"
+	"regexp"
 )
 
 func main() {
@@ -25,13 +30,21 @@ func main() {
 		}
 		eCheck(err)
 
-		sequenceRecord := record.Seq
+		namespaceAccession := "NCBI:" + string(record.ID)
+		fmt.Println(namespaceAccession)
 
-		identifer := "NCBI:" + string(record.ID)
+		matched, err := regexp.Match("NC_", record.ID)
+		eCheck(err)
 
-		fmt.Println(identifer)
-		input := []byte(sequenceRecord.Seq)
-		fmt.Println(digest(input, 24))
+		if matched == true {
+			sequenceRecord := record.Seq
+			input := []byte(sequenceRecord.Seq)
+			fmt.Println(digest(input, 24))
+		} else {
+			fmt.Println("Fasta record does not contain NC_")
+			fmt.Println(string(record.ID))
+			continue
+		}
 	}
 }
 

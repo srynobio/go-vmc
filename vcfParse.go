@@ -13,47 +13,6 @@ import (
 
 var version = "v1.0.0"
 
-/*
-	Define all struct used in VMC model
-*/
-
-var Id string
-var DateTime = time.Now()
-
-type Allele struct {
-	id          string
-	location_id string
-	state       string
-}
-
-type Genotype struct {
-	id            string
-	haplotype_ids []string
-	completedness int
-}
-
-type Haplotype struct {
-	id            string
-	allele_id     []string
-	completedness int
-}
-
-type identifier struct {
-	accession string
-	namespace string
-}
-
-type Interval struct {
-	start int
-	end   int
-}
-
-type Location struct {
-	id          string
-	interval    int
-	sequence_id string
-}
-
 type VMC struct {
 	Chromosome      string
 	Interval        string
