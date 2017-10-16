@@ -14,11 +14,28 @@ import (
 var version = "v1.0.0"
 
 /*
-	Define all struct used in VMC model
+	Define all struts used in
+	VMC model software.
 */
 
 var Id string
 var DateTime = time.Now()
+
+type identifier struct {
+	accession string
+	namespace string
+}
+
+type Interval struct {
+	start uint32
+	end   uint32
+}
+
+type Location struct {
+	id          string
+	interval    int
+	sequence_id string
+}
 
 type Allele struct {
 	id          string
@@ -38,26 +55,7 @@ type Haplotype struct {
 	completedness int
 }
 
-type identifier struct {
-	accession string
-	namespace string
-}
-
-type Interval struct {
-	start int
-	end   int
-}
-
-type Location struct {
-	id          string
-	interval    int
-	sequence_id string
-}
-
-type VMC struct {
-	Chromosome      string
-	Interval        string
-	State           string
+type VMCID struct {
 	VMCidentifierID string
 	SequenceID      string
 	LocationID      string
@@ -78,10 +76,12 @@ func main() {
 	eCheck(err)
 	defer rdr.Close()
 
-	var vb VMC
+	var vmc VMCID
+	var allele Allele
+	var interval Interval
 
 	// set DummySeqID
-	vb.SequenceID = "VMC:GS_Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
+	vmc.SequenceID = "VMC:GS_Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
 
 	for {
 		variant := rdr.Read()
@@ -89,22 +89,32 @@ func main() {
 			break
 		}
 
-		// Check for alternate alleles.
+		// set values from variant.
 		altAllele := variant.Alt()
+		start := variant.Start() - 1
+		end := variant.End() + 1
 
 		if len(altAllele) > 1 {
 			log.Panicln("multiallelic variants found, please pre-run vt decomposes.")
 		}
 
-		// Define VMC location
-		vb.Chromosome = variant.Chrom()
-		vb.Interval = fmt.Sprint(variant.Start()-1) + ":" + fmt.Sprint(variant.End()+1)
-		vb.State = altAllele[0]
+		// set non VMC struct values.
+		allele.state = altAllele[0]
+		allele.location_id = vmc.LocationID
 
-		vb.LocationID = LocationID(vb)
-		vb.AlleleID = AlleleID(vb)
+		interval.start = start
+		interval.end = end
 
-		fmt.Println(vb)
+		/* call SQL to get:
+		1 - namespace & accession
+		2 - VMC sequence_id
+		*/
+
+		// set VMC struct
+		vmc.LocationID = VMCLocationID(vmc, interval)
+		vmc.AlleleID = VMCAlleleID(vmc, allele)
+
+		fmt.Println(allele)
 	}
 }
 
@@ -112,25 +122,25 @@ func main() {
 // VMC functions
 // ------------------------- //
 
-func VMCLocationID(class VMC) string {
+func VMCLocationID(v VMCID, i Interval) string {
 
-	seqID := class.SequenceID
-	interval := class.Interval
+	seqID := v.SequenceID
+	intervalString := fmt.Sprint(i.start) + ":" + fmt.Sprint(i.end)
 
-	location := "<Location:<Identifier:" + seqID + ">:<Interval:" + interval + ">>"
-	DigestLocation := DigestId([]byte(location), 24)
+	location := "<Location:<Identifier:" + seqID + ">:<Interval:" + intervalString + ">>"
+	DigestLocation := VMCDigestId([]byte(location), 24)
 	return "VMC:GL_" + DigestLocation
 }
 
 // ------------------------- //
 
-func VMCAlleleID(class VMC) string {
+func VMCAlleleID(v VMCID, a Allele) string {
 
-	vmcLocation := class.LocationID
-	state := class.State
+	vmcLocation := v.LocationID
+	state := a.state
 
 	allele := "<Allele:<Identifier:" + vmcLocation + ">:" + state + ">"
-	DigestAllele := DigestId([]byte(allele), 24)
+	DigestAllele := VMCDigestId([]byte(allele), 24)
 	return "VMC:GA_" + DigestAllele
 }
 
