@@ -21,7 +21,7 @@ var version = "v1.0.0"
 var Id string
 var DateTime = time.Now()
 
-type identifier struct {
+type Identifier struct {
 	accession string
 	namespace string
 }
