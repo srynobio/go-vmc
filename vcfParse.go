@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"githu"
+	//"fmt"
 	"github.com/brentp/vcfgo"
 	"github.com/brentp/xopen"
-	"github.com/srynobio/govmc"
+	"github.com/srynobio/go-vmc/vmc"
 	"log"
 	"os"
 )
@@ -26,13 +25,15 @@ func main() {
 			break
 		}
 
-		fmt.Println(variant.Id())
 		// Check for alternate alleles.
 		altAllele := variant.Alt()
-
 		if len(altAllele) > 1 {
 			log.Panicln("multiallelic variants found, please pre-run vt decomposes.")
 		}
+
+		// set variant line to build vmc
+		log.Println(vmc.CreateVMC(variant))
+
 	}
 }
 
