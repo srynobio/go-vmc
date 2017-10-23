@@ -2,6 +2,7 @@ package main
 
 import (
 	//"fmt"
+	"fmt"
 	"github.com/brentp/vcfgo"
 	"github.com/brentp/xopen"
 	"github.com/srynobio/go-vmc/vmc"
@@ -32,7 +33,9 @@ func main() {
 		}
 
 		// set variant line to build vmc
-		log.Println(vmc.CreateVMC(variant))
+		record := vmc.CreateVMC(variant)
+
+		fmt.Println(record.Interval)
 
 	}
 }

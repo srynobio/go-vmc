@@ -26,7 +26,7 @@ type VMCID struct {
 	}
 	Location struct {
 		id          string
-		interval    int
+		interval    string
 		sequence_id string
 	}
 	Allele struct {
@@ -44,11 +44,6 @@ type VMCID struct {
 		allele_id     []string
 		completedness int
 	}
-	//SequenceID  string
-	//LocationID  string
-	//AlleleID    string
-	HaplotypeID string
-	GenotypeID  string
 }
 
 // ------------------------- //
@@ -65,26 +60,20 @@ func CreateVMC(v *vcfgo.Variant) *VMCID {
 	vmc.DateTime = time.Now()
 	vmc.Identifier.namespace = "VMC"
 
-	//set Dummy Seq ID
-	vmc.Location.sequence_id = vmc.Identifier.namespace + ":GS_Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
-
+	// Collect values from the vcf read.
 	vmc.Interval.start = v.Start() - 1
 	vmc.Interval.end = v.End() - 1
-
-	vmcLocationID(vmc)
-
 	vmc.Allele.state = v.Alt()[0]
-	vmc.Allele.location_id = vmc.LocationID
-	vmc.alleleid = vmcalleleid(vmc)
 
-	var gogo = &vmc
-	return gogo
+	vmcLocation(&vmc)
+	vmcAllele(&vmc)
 
+	return &vmc
 }
 
 // ------------------------- //
 
-func vmcLocationID(v VMCID) {
+func vmcLocation(v *VMCID) {
 
 	seqID := v.Location.sequence_id
 	intervalString := fmt.Sprint(v.Interval.start) + ":" + fmt.Sprint(v.Interval.end)
@@ -93,24 +82,26 @@ func vmcLocationID(v VMCID) {
 	DigestLocation := vmcDigestId([]byte(location), 24)
 	id := v.Identifier.namespace + ":GL_" + DigestLocation
 
+	// Set as dummy id
+	v.Location.sequence_id = v.Identifier.namespace + ":GS_Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
 	v.Location.id = id
+	v.Location.interval = intervalString
+
 }
 
 // ------------------------- //
 
-func vmcAlleleID(v VMCID) {
+func vmcAllele(v *VMCID) {
 
-	vmcLocation := v.Location.id
+	v.Allele.location_id = v.Location.id
 	state := v.Allele.state
 
-	allele := "<Allele:<Identifier:" + vmcLocation + ">:" + state + ">"
+	allele := "<Allele:<Identifier:" + v.Location.id + ">:" + state + ">"
 	DigestAllele := vmcDigestId([]byte(allele), 24)
 	id := v.Identifier.namespace + ":GA_" + DigestAllele
 
 	v.Allele.id = id
-
-	v.Allele.id = id
-
+	v.Allele.location_id = v.Location.id
 }
 
 // ------------------------- //
