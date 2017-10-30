@@ -16,12 +16,10 @@ const goUsage = `
 
 Required options:
 
-		-fasta	: Fasta file to used to create VMC based ID.
+	-fasta	   : Fasta file to used to create VMC based ID.
 
-		-nameSpace :	Namespace accession authority 
-						Examples:
-							NCBI
-							Ensembl
+	-nameSpace :	Namespace accession authority 
+					Examples: NCBI, ENsembl, UCSC
 
 Additional options:
 
