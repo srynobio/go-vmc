@@ -33,9 +33,9 @@ func main() {
 		}
 
 		// set variant line to build vmc
-		record := vmc.CreateVMC(variant)
+		record := vmc.GetVMCRecord(variant)
 
-		fmt.Println(record.Interval)
+		fmt.Println(record.Location)
 
 	}
 }
