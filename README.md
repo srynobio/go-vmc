@@ -1,6 +1,8 @@
 # go-vmc
 Go library and toolkit using the Variation Modelling Collaboration (VMC) Data model for exchanging sequence variation.
 
+### This file will be updated on release.
+
 
 
 # notes on how different version of the reference will create 
