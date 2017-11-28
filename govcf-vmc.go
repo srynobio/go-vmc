@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"fmt"
 	"fmt"
 	"github.com/brentp/vcfgo"
 	"github.com/brentp/xopen"
@@ -17,6 +16,12 @@ func main() {
 	defer fh.Close()
 
 	rdr, err := vcfgo.NewReader(fh, false)
+
+	// Add VMC INFO to the header.
+	rdr.AddInfoToHeader("VMCGSID", "1", "String", "VMC Sequence identifier")
+	rdr.AddInfoToHeader("VMCGLID", "1", "String", "VMC Location identifier")
+	rdr.AddInfoToHeader("VMCGAID", "1", "String", "VMC Allele identifier")
+
 	eCheck(err)
 	defer rdr.Close()
 
@@ -33,7 +38,7 @@ func main() {
 		}
 
 		// set variant line to build vmc
-		record := vmc.GetVMCRecord(variant)
+		record := vmc.VMCRecord(variant)
 
 		fmt.Println(record.Location)
 

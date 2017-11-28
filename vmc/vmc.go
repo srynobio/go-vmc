@@ -53,7 +53,7 @@ type VMCID struct {
 // TODO:
 // method to build or get seq_id from file or db.
 
-func GetVMCRecord(v *vcfgo.Variant) *VMCID {
+func VMCRecord(v *vcfgo.Variant) *VMCID {
 
 	vmc := VMCID{}
 	vmc.Version = Version
@@ -79,7 +79,7 @@ func vmcLocation(v *VMCID) {
 	intervalString := fmt.Sprint(v.Interval.start) + ":" + fmt.Sprint(v.Interval.end)
 
 	location := "<Location:<Identifier:" + seqID + ">:<Interval:" + intervalString + ">>"
-	DigestLocation := vmcDigestId([]byte(location), 24)
+	DigestLocation := VMCDigestId([]byte(location), 24)
 	id := v.Identifier.namespace + ":GL_" + DigestLocation
 
 	// Set as dummy id
@@ -96,7 +96,7 @@ func vmcAllele(v *VMCID) {
 	state := v.Allele.state
 
 	allele := "<Allele:<Identifier:" + v.Location.id + ">:" + state + ">"
-	DigestAllele := vmcDigestId([]byte(allele), 24)
+	DigestAllele := VMCDigestId([]byte(allele), 24)
 	id := v.Identifier.namespace + ":GA_" + DigestAllele
 
 	v.Allele.id = id
