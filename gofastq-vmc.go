@@ -54,7 +54,6 @@ func main() {
 		fmt.Println("What will be added to db:")
 		fmt.Println("Namespace: ", *namespacePtr)
 		fmt.Println("Accession: ", accession)
-		fmt.Println("SeqID: ", compactURI+"_"+digestID)
 		fmt.Println("CURIE: ", compactURI)
 		fmt.Println("VMC_SeqID: ", "VMC:GS_"+digestID)
 

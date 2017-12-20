@@ -5,24 +5,21 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/brentp/vcfgo"
+	//"github.com/shenwei356/bio/seqio/fastx"
 	"time"
 )
 
 const Version = "v1.0.0"
 
-// Define the VMC struct
-
-type VMCID struct {
-	Version    string
+type VMC struct {
 	Id         string
-	DateTime   time.Time
 	Identifier struct {
 		accession string
 		namespace string
 	}
 	Interval struct {
-		start uint32
-		end   uint32
+		start uint64
+		end   uint64
 	}
 	Location struct {
 		id          string
@@ -44,68 +41,103 @@ type VMCID struct {
 		allele_id     []string
 		completedness int
 	}
+	Meta struct {
+		generated_at time.Time
+		vmc_version  string
+	}
 }
 
 // ------------------------- //
 // VMC functions
 // ------------------------- //
 
+func init() {
+
+}
+
 // TODO:
 // method to build or get seq_id from file or db.
 
-func VMCRecord(v *vcfgo.Variant) *VMCID {
+func Initialize() *VMC {
+	vmc := VMC{}
 
-	vmc := VMCID{}
-	vmc.Version = Version
-	vmc.DateTime = time.Now()
-	vmc.Identifier.namespace = "VMC"
-
-	// Collect values from the vcf read.
-	vmc.Interval.start = v.Start() - 1
-	vmc.Interval.end = v.End() + 1
-	vmc.Allele.state = v.Alt()[0]
-
-	vmcLocation(&vmc)
-	vmcAllele(&vmc)
+	vmc.Meta.generated_at = time.Time
+	vmc.Meta.vmc_version = Version
 
 	return &vmc
 }
 
-// ------------------------- //
+// ------------------------------------------------------ //
 
-func vmcLocation(v *VMCID) {
+/*
+//func (v *VMC) VMCBuild(vcf *vcfgo.Variant, namespace string) *VMC {
+func VMCBuild(vcf *vcfgo.Variant, namespace string) *VMC {
 
-	seqID := v.Location.sequence_id
-	intervalString := fmt.Sprint(v.Interval.start) + ":" + fmt.Sprint(v.Interval.end)
+	v := VMC{}
+	v.digestLocation(vcf, namespace)
+	v.digestAllele(vcf, namespace)
+	return &v
+}
+*/
+// ------------------------------------------------------ //
 
+func (v *VMC) DigestLocation(vcf *vcfgo.Variant, namespace string) *VMC {
+	//func VMCLocation(v *VMC, vcf *vcfgo.Variant, namespace string) {
+	seqID := "Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
+
+	intervalString := fmt.Sprint(uint64(vcf.Start())) + ":" + fmt.Sprint(uint64(vcf.End()))
 	location := "<Location:<Identifier:" + seqID + ">:<Interval:" + intervalString + ">>"
-	DigestLocation := VMCDigestId([]byte(location), 24)
-	id := v.Identifier.namespace + ":GL_" + DigestLocation
+	DigestLocation := Digest([]byte(location), 24)
 
-	// Set as dummy id
-	v.Location.sequence_id = v.Identifier.namespace + ":GS_Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
-	v.Location.id = id
 	v.Location.interval = intervalString
+	v.Location.sequence_id = seqID
+	v.Location.id = DigestLocation
+
+	if namespace == "VMC" {
+		identifier := namespace + ":GL_" + DigestLocation
+		v.Location.id = identifier
+
+	} else {
+
+		identifier := namespace + ":" + DigestLocation
+		v.Location.id = identifier
+	}
+	return v
 }
 
-// ------------------------- //
+// ------------------------------------------------------ //
 
-func vmcAllele(v *VMCID) {
+func (v *VMC) DigestAllele(vcf *vcfgo.Variant, namespace string) *VMC {
+	//func vmcAllele(v *VMC, vcf *vcfgo.Variant, namespace string) {
 
-	v.Allele.location_id = v.Location.id
-	state := v.Allele.state
+	state := fmt.Sprint(vcf.Alt())
 
 	allele := "<Allele:<Identifier:" + v.Location.id + ">:" + state + ">"
-	DigestAllele := VMCDigestId([]byte(allele), 24)
-	id := v.Identifier.namespace + ":GA_" + DigestAllele
+	DigestAllele := Digest([]byte(allele), 24)
 
-	v.Allele.id = id
 	v.Allele.location_id = v.Location.id
+	v.Allele.state = state
+
+	if namespace == "VMC" {
+		identifier := namespace + ":GA_" + DigestAllele
+		v.Allele.id = identifier
+	} else {
+
+		identifier := namespace + ":" + DigestAllele
+		v.Allele.id = identifier
+	}
+	return v
 }
 
-// ------------------------- //
+// ------------------------------------------------------ //
 
-func VMCDigestId(bv []byte, truncate int) string {
+func (v *VMC) AlleleID() {
+
+}
+
+// ------------------------------------------------------ //
+
+func Digest(bv []byte, truncate int) string {
 	hasher := sha512.New()
 	hasher.Write(bv)
 
@@ -113,4 +145,4 @@ func VMCDigestId(bv []byte, truncate int) string {
 	return sha
 }
 
-// ------------------------- //
+// ------------------------------------------------------ //

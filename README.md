@@ -4,16 +4,7 @@ Go library and toolkit using the Variation Modelling Collaboration (VMC) Data mo
 ### This file will be updated on release.
 
 
-
-# notes on how different version of the reference will create 
-# different version of vmc sequence_id
-
-```
-
-This directory contains the Feb. 2009 assembly of the human genome (hg19,
-GRCh37 Genome Reference Consortium Human Reference 37 (GCA_000001405.1)),
-as well as repeat annotations and GenBank sequences.
-~~ GCA_000001405.1
+NTES:
 
 http://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/
 data/chr19.fa.gz
@@ -38,8 +29,3 @@ VMC:GS_IIB53T8CNeJJdUqzn9V_JnRtQadwWCbl
 
 
 
-!!!!!
-https://www.ncbi.nlm.nih.gov/genome/?term=txid9606[Organism:exp]
-!!!!
-
-Assembly accessions: GenBank: GCA_000001405.1, RefSeq: GCF_000001405.13
