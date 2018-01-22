@@ -51,6 +51,10 @@ func main() {
 
 		fmt.Println(vmc.AlleleID(record))
 		fmt.Println(vmc.LocationID(record))
+		variant.Info().Set("VMCGAID", vmc.AlleleID(record))
+		variant.Info().Set("VMCGLID", vmc.LocationID(record))
+
+		fmt.Println(variant.Info())
 
 	}
 }

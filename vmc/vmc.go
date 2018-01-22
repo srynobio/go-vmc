@@ -56,6 +56,8 @@ func (v *VMC) SequenceDigest() {}
 
 // ------------------------------------------------------ //
 
+///////// update to use interbased coordinate system.
+
 func (v *VMC) LocationDigest(vcf *vcfgo.Variant, namespace string) {
 
 	seqID := "Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
@@ -111,8 +113,6 @@ func Digest(bv []byte, truncate int) string {
 	return sha
 }
 
-// ------------------------------------------------------ //
-// Getter styled functions.
 // ------------------------------------------------------ //
 
 func LocationID(vmc *VMC) string {
