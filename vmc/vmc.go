@@ -5,84 +5,59 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/brentp/vcfgo"
-	//"github.com/shenwei356/bio/seqio/fastx"
-	"time"
 )
 
 const Version = "v1.0.0"
 
+type Identifier struct {
+	accession string
+	namespace string
+}
+
+type Interval struct {
+	start uint64
+	end   uint64
+}
+type Location struct {
+	id          string
+	interval    string
+	sequence_id string
+}
+type Allele struct {
+	id          string
+	location_id string
+	state       string
+}
+
 type VMC struct {
 	Id         string
-	Identifier struct {
-		accession string
-		namespace string
-	}
-	Interval struct {
-		start uint64
-		end   uint64
-	}
-	Location struct {
-		id          string
-		interval    string
-		sequence_id string
-	}
-	Allele struct {
-		id          string
-		location_id string
-		state       string
-	}
-	Genotype struct {
-		id            string
-		haplotype_ids []string
-		completedness int
-	}
-	Haplotype struct {
-		id            string
-		allele_id     []string
-		completedness int
-	}
-	Meta struct {
-		generated_at time.Time
-		vmc_version  string
-	}
+	Identifier Identifier
+	Interval   Interval
+	Location   Location
+	Allele     Allele
 }
 
 // ------------------------- //
 // VMC functions
 // ------------------------- //
 
-func init() {
+func VMCMarshal(v *vcfgo.Variant, namespace string) *VMC {
+	vmc := &VMC{}
 
-}
+	vmc.LocationDigest(v, "VMC")
+	vmc.AlleleDigest(v, "VMC")
 
-// TODO:
-// method to build or get seq_id from file or db.
-
-func Initialize() *VMC {
-	vmc := VMC{}
-
-	vmc.Meta.generated_at = time.Time
-	vmc.Meta.vmc_version = Version
-
-	return &vmc
+	return vmc
 }
 
 // ------------------------------------------------------ //
 
-/*
-//func (v *VMC) VMCBuild(vcf *vcfgo.Variant, namespace string) *VMC {
-func VMCBuild(vcf *vcfgo.Variant, namespace string) *VMC {
+func (v *VMC) SequenceDigest() {}
 
-	v := VMC{}
-	v.digestLocation(vcf, namespace)
-	v.digestAllele(vcf, namespace)
-	return &v
-}
-*/
 // ------------------------------------------------------ //
 
-func (v *VMC) DigestLocation(vcf *vcfgo.Variant, namespace string) *VMC {
-	//func VMCLocation(v *VMC, vcf *vcfgo.Variant, namespace string) {
+func (v *VMC) LocationDigest(vcf *vcfgo.Variant, namespace string) {
+
 	seqID := "Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
 
 	intervalString := fmt.Sprint(uint64(vcf.Start())) + ":" + fmt.Sprint(uint64(vcf.End()))
@@ -102,13 +77,11 @@ func (v *VMC) DigestLocation(vcf *vcfgo.Variant, namespace string) *VMC {
 		identifier := namespace + ":" + DigestLocation
 		v.Location.id = identifier
 	}
-	return v
 }
 
 // ------------------------------------------------------ //
 
-func (v *VMC) DigestAllele(vcf *vcfgo.Variant, namespace string) *VMC {
-	//func vmcAllele(v *VMC, vcf *vcfgo.Variant, namespace string) {
+func (v *VMC) AlleleDigest(vcf *vcfgo.Variant, namespace string) {
 
 	state := fmt.Sprint(vcf.Alt())
 
@@ -126,13 +99,6 @@ func (v *VMC) DigestAllele(vcf *vcfgo.Variant, namespace string) *VMC {
 		identifier := namespace + ":" + DigestAllele
 		v.Allele.id = identifier
 	}
-	return v
-}
-
-// ------------------------------------------------------ //
-
-func (v *VMC) AlleleID() {
-
 }
 
 // ------------------------------------------------------ //
@@ -143,6 +109,20 @@ func Digest(bv []byte, truncate int) string {
 
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil)[:truncate])
 	return sha
+}
+
+// ------------------------------------------------------ //
+// Getter styled functions.
+// ------------------------------------------------------ //
+
+func LocationID(vmc *VMC) string {
+	return vmc.Location.id
+}
+
+// ------------------------------------------------------ //
+
+func AlleleID(vmc *VMC) string {
+	return vmc.Allele.id
 }
 
 // ------------------------------------------------------ //

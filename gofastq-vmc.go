@@ -13,7 +13,6 @@ import (
 const goUsage = `
 
 
-
 Required options:
 
 	-fasta	   :	Fasta file to used to create VMC based ID.
