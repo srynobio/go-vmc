@@ -126,3 +126,9 @@ func AlleleID(vmc *VMC) string {
 }
 
 // ------------------------------------------------------ //
+
+func SequenceID(vmc *VMC) string {
+	return vmc.Location.sequence_id
+}
+
+// ------------------------------------------------------ //
