@@ -6,16 +6,20 @@ import (
 	"github.com/brentp/xopen"
 	"github.com/srynobio/go-vmc/vmc"
 	"os"
+	"strings"
 )
 
 func main() {
 
 	var args struct {
-		VCF    string `arg:"required",  "VCF file to annotate with VMC digest ids"`
-		Fasta  string `arg: "Reference fasta file used to create VCF file."`
-		Output string `arg:"required", Name for output VCF file."`
+		VCF   string `arg:"required,help:VCF file to annotate with VMC digest ids. [Required]"`
+		Fasta string `arg:"help:Reference fasta file used to create VCF file."`
+		Gzip  bool   `arg:"help:Flag if gzip output desired."`
+		//Output string `arg:"required", Name for output VCF file."`
 	}
 	arg.MustParse(&args)
+	//	outFile := strings.Replace(args.Output, "vcf", "vmc.vcf", -1)
+	outFile := strings.Replace(args.VCF, "vcf", "vmc.vcf", -1)
 
 	fh, err := xopen.Ropen(args.VCF)
 	if err != nil {
@@ -23,19 +27,19 @@ func main() {
 	}
 	defer fh.Close()
 
+	// create the writer
+	output, err := os.Create(outFile)
+	if err != nil {
+		panic(err)
+	}
+	defer output.Close()
+
 	// VCF reader
 	rdr, err := vcfgo.NewReader(fh, false)
 	if err != nil {
 		panic("Could not read given VCF file.")
 	}
 	defer rdr.Close()
-
-	// create the writer
-	output, err := os.Create(args.Output)
-	if err != nil {
-		panic(err)
-	}
-	defer output.Close()
 
 	// Add VMC INFO to the header.
 	rdr.AddInfoToHeader("VMCGSID", "1", "String", "VMC Sequence identifier")

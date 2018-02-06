@@ -2,61 +2,64 @@ package main
 
 import (
 	"crypto/sha512"
+	"database/sql"
 	"encoding/base64"
-	"flag"
 	"fmt"
+	"github.com/alexflint/go-arg"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/shenwei356/bio/seqio/fastx"
-	"io"
-	"os"
 )
-
-const goUsage = `
-
-
-Required options:
-
-	-fasta	   :	Fasta file to used to create VMC based ID.
-
-	-nameSpace :	Namespace accession authority. Examples: NCBI, ENsembl, UCSC
-
-Additional options:
-
-`
 
 func main() {
 
-	fqPtr := flag.String("fasta", "", "Original fasta file to create VMC IDs")
-	namespacePtr := flag.String("nameSpace", "", "Accessioning authority")
-	flag.Parse()
+	var args struct {
+		Fasta    string `arg:"required,help:Reference fasta file to create VMC_Sequence_ID record."`
+		DATABASE string `arg:"required,help:Database file to build or add records to."`
+	}
+	arg.MustParse(&args)
 
-	if *fqPtr == "" && *namespacePtr == "" {
-		fmt.Println(goUsage)
-		os.Exit(1)
+	// open connection to db
+	db, err := sql.Open("sqlite3", args.DATABASE)
+	if err != nil {
+		panic("cannot open connection to sqlite3 database.")
+	}
+	defer db.Close()
+
+	// create needed table in database.
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS `VMC_Reference_Sequence` (`ID` INTEGER PRIMARY KEY AUTOINCREMENT, `Description_Line` TEXT NOT NULL, `VMC_Sequence_ID` TEXT NOT NULL UNIQUE)")
+	if err != nil {
+		panic("Could not create needed database table.")
+	}
+
+	// create insert statement
+	stmt, err := db.Prepare("INSERT OR IGNORE INTO VMC_Reference_Sequence(Description_Line, VMC_Sequence_ID) values(?,?)")
+	if err != nil {
+		panic(err)
 	}
 
 	// Incoming fastq file.
-	reader, err := fastx.NewDefaultReader(*fqPtr)
-	eCheck(err)
-
-	for {
-		record, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		eCheck(err)
-
-		//accession := string(record.Name)
-		accession := string(record.ID)
-		digestID := VMCDigestId(record.Seq.Seq, 24)
-		compactURI := *namespacePtr + ":" + accession
-
-		fmt.Println("What will be added to db:")
-		fmt.Println("Namespace: ", *namespacePtr)
-		fmt.Println("Accession: ", accession)
-		fmt.Println("CURIE: ", compactURI)
-		fmt.Println("VMC_SeqID: ", "VMC:GS_"+digestID)
-
+	reader, err := fastx.NewDefaultReader(args.Fasta)
+	if err != nil {
+		panic(err)
 	}
+
+	for chunk := range reader.ChunkChan(100, 10) {
+		if chunk.Err != nil {
+			panic(chunk.Err)
+		}
+
+		for _, record := range chunk.Data {
+			digestID := VMCDigestId(record.Seq.Seq, 24)
+			_, err := stmt.Exec(record.Name, digestID)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Println("Added to the Database:")
+			fmt.Println(string(record.Name), digestID)
+		}
+	}
+
 }
 
 // ------------------------ //
@@ -70,18 +73,3 @@ func VMCDigestId(bv []byte, truncate int) string {
 }
 
 // -------------------------------------------- //
-
-func eCheck(p error) {
-	if p != nil {
-		panic(p)
-	}
-}
-
-// -------------------------------------------- //
-
-/*
-   filePtr := flag.String("bam", "", "lossless BAM file to validate")
-   cpus := flag.Int("cpus", 0, "Number of cpus to allow co-processing.")
-   auxTag := flag.String("tag", "OQ", "Required tag all reads must contain.")
-   flag.Parse()
-*/
