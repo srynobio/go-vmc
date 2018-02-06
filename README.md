@@ -36,7 +36,7 @@ sqlite> select * from VMC_Reference_Sequence;
 
 #### Processing test runtimes.
 
-`Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz`
+* Test using GRCh37 primary assembly
 
 ```
 $> gofastq-vmc-osx -database vmc.sequence.db -fasta data/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
