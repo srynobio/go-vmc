@@ -6,7 +6,7 @@ Go library and toolkit using the Variation Modelling Collaboration (VMC) Data mo
 * This codebase is still in development and will/can change based on changes to the [VMC Spec](https://docs.google.com/document/d/12E8WbQlvfZWk5NrxwLytmympPby6vsv60RxCeD5wc1E/edit)
 
 
-#### gofastq example
+### gofastq example
 
 ```
 $> gofastq-vmc-osx -database vmc.sequence.db -fasta data/chr19.fa.gz
