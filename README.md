@@ -23,7 +23,7 @@ sqlite> select * from VMC_Reference_Sequence;
 
 ```
 
-#### Current sqlite3 schema for VMC_Reference_Sequence_
+#### Current sqlite3 schema for VMC_Reference_Sequence
 
 ```
 `VMC_Reference_Sequence` (
@@ -32,4 +32,20 @@ sqlite> select * from VMC_Reference_Sequence;
     `VMC_Sequence_ID` TEXT NOT NULL UNIQUE
 );
 ```
+
+
+#### Processing test runtimes.
+
+`Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz`
+
+```
+$> gofastq-vmc-osx -database vmc.sequence.db -fasta data/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
+
+real	13m16.808s
+```
+
+
+
+
+
 
