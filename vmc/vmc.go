@@ -4,6 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
+
 	"github.com/brentp/vcfgo"
 )
 

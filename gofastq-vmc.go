@@ -1,13 +1,13 @@
 package main
 
 import (
-	"crypto/sha512"
 	"database/sql"
-	"encoding/base64"
 	"fmt"
+
 	"github.com/alexflint/go-arg"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/shenwei356/bio/seqio/fastx"
+	"github.com/srynobio/go-vmc/vmc"
 )
 
 func main() {
@@ -43,13 +43,13 @@ func main() {
 		panic(err)
 	}
 
-	for chunk := range reader.ChunkChan(100, 10) {
+	for chunk := range reader.ChunkChan(5000, 5) {
 		if chunk.Err != nil {
 			panic(chunk.Err)
 		}
 
 		for _, record := range chunk.Data {
-			digestID := VMCDigestId(record.Seq.Seq, 24)
+			digestID := vmc.Digest(record.Seq.Seq, 24)
 			_, err := stmt.Exec(record.Name, digestID)
 			if err != nil {
 				panic(err)
@@ -61,15 +61,3 @@ func main() {
 	}
 
 }
-
-// ------------------------ //
-
-func VMCDigestId(bv []byte, truncate int) string {
-	hasher := sha512.New()
-	hasher.Write(bv)
-
-	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil)[:truncate])
-	return sha
-}
-
-// -------------------------------------------- //
