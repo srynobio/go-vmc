@@ -2,10 +2,14 @@ package vmc
 
 import (
 	"crypto/sha512"
+	"database/sql"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"path"
 
 	"github.com/brentp/vcfgo"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const Version = "v1.0.0"
@@ -41,8 +45,15 @@ type VMC struct {
 // VMC functions
 // ------------------------- //
 
-func VMCMarshal(v *vcfgo.Variant, namespace string) *VMC {
+func VMCMarshal(v *vcfgo.Variant, fastaFile, database, namespace string) *VMC {
 	vmc := &VMC{}
+
+	// search for and set seq id first.
+	vmcID, err := vmc.getSeqID(v, fastaFile, database)
+	if err != nil {
+		fmt.Println(err)
+	}
+	vmc.Location.sequence_id = vmcID
 
 	vmc.LocationDigest(v, "VMC")
 	vmc.AlleleDigest(v, "VMC")
@@ -52,7 +63,38 @@ func VMCMarshal(v *vcfgo.Variant, namespace string) *VMC {
 
 // ------------------------------------------------------ //
 
-func (v *VMC) SequenceDigest() {}
+func (v *VMC) getSeqID(vcf *vcfgo.Variant, fastaFile, database string) (string, error) {
+
+	// get basename of fastqFile for search
+	fastaBase := path.Base(fastaFile)
+	dataPathBase := path.Base(database)
+
+	// open connection to db
+	db, err := sql.Open("sqlite3", dataPathBase)
+	if err != nil {
+		panic("cannot open connection to sqlite3 database.")
+	}
+	defer db.Close()
+
+	/// current location where need to handle nul returns from db.
+
+	// fetch from db
+	rows, err := db.Query("SELECT VMC_Sequence_ID FROM VMC_Reference_Sequence WHERE File_Name = (?) AND Chromosome = (?)", fastaBase, vcf.Chromosome)
+	if err != nil {
+		return "", errors.New("shit when down.")
+		//		log.Panicf("Chromosome %s not found in fasta file %s\n", vcf.Chromosome, fastaBase)
+	}
+	defer rows.Close()
+
+	var VMC_Sequence_ID string
+	for rows.Next() {
+		err := rows.Scan(&VMC_Sequence_ID)
+		if err != nil {
+			panic("Fatal error retrieving data from database.")
+		}
+	}
+	return VMC_Sequence_ID, nil
+}
 
 // ------------------------------------------------------ //
 
@@ -60,7 +102,7 @@ func (v *VMC) SequenceDigest() {}
 
 func (v *VMC) LocationDigest(vcf *vcfgo.Variant, namespace string) {
 
-	seqID := "Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
+	seqID := v.Location.sequence_id
 
 	intervalString := fmt.Sprint(uint64(vcf.Start())) + ":" + fmt.Sprint(uint64(vcf.End()))
 	location := "<Location:<Identifier:" + seqID + ">:<Interval:" + intervalString + ">>"
@@ -70,12 +112,11 @@ func (v *VMC) LocationDigest(vcf *vcfgo.Variant, namespace string) {
 	v.Location.sequence_id = seqID
 	v.Location.id = DigestLocation
 
-	if namespace == "VMC" {
+	switch namespace {
+	case "VMC":
 		identifier := namespace + ":GL_" + DigestLocation
 		v.Location.id = identifier
-
-	} else {
-
+	default:
 		identifier := namespace + ":" + DigestLocation
 		v.Location.id = identifier
 	}

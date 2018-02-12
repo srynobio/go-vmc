@@ -13,13 +13,11 @@ import (
 func main() {
 
 	var args struct {
-		VCF   string `arg:"required,help:VCF file to annotate with VMC digest ids. [Required]"`
-		Fasta string `arg:"help:Reference fasta file used to create VCF file."`
-		Gzip  bool   `arg:"help:Flag if gzip output desired."`
-		//Output string `arg:"required", Name for output VCF file."`
+		VCF       string `arg:"required,help:VCF file to annotate with VMC digest ids. [Required]"`
+		FastaFile string `arg:"required,help:Reference fasta file used to create VMC sequence database."`
+		DATABASE  string `arg:"required,help:Prebuild VMC sequence database."`
 	}
 	arg.MustParse(&args)
-	//	outFile := strings.Replace(args.Output, "vcf", "vmc.vcf", -1)
 	outFile := strings.Replace(args.VCF, "vcf", "vmc.vcf", -1)
 
 	fh, err := xopen.Ropen(args.VCF)
@@ -65,7 +63,7 @@ func main() {
 			panic("multiallelic variant found, please pre-run with vt.")
 		}
 
-		record := vmc.VMCMarshal(variant, "VMC")
+		record := vmc.VMCMarshal(variant, args.FastaFile, args.DATABASE, "VMC")
 		variant.Info().Set("VMCGSID", vmc.SequenceID(record))
 		variant.Info().Set("VMCGLID", vmc.LocationID(record))
 		variant.Info().Set("VMCGAID", vmc.AlleleID(record))

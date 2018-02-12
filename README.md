@@ -26,10 +26,11 @@ sqlite> select * from VMC_Reference_Sequence;
 #### Current sqlite3 schema for VMC_Reference_Sequence
 
 ```
-`VMC_Reference_Sequence` (
-    `ID` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `Description_Line` TEXT NOT NULL,
-    `VMC_Sequence_ID` TEXT NOT NULL UNIQUE
+`VMC_Reference_Sequence` 
+	`ID` INTEGER PRIMARY KEY AUTOINCREMENT, 
+	`Chromosome` TEXT NOT NULL UNIQUE, 
+	`Description_Line` TEXT NOT NULL UNIQUE, 
+	`VMC_Sequence_ID` TEXT NOT NULL
 );
 ```
 

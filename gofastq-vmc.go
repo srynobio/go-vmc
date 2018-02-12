@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-
+	"path"
 	"strings"
 
 	"github.com/alexflint/go-arg"
@@ -29,13 +29,13 @@ func main() {
 	defer db.Close()
 
 	// create needed table in database.
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS `VMC_Reference_Sequence` (`ID` INTEGER PRIMARY KEY AUTOINCREMENT, `Chromosome` TEXT NOT NULL UNIQUE, `Description_Line` TEXT NOT NULL UNIQUE, `VMC_Sequence_ID` TEXT NOT NULL)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS `VMC_Reference_Sequence` (`ID` INTEGER PRIMARY KEY AUTOINCREMENT, `File_Name` TEXT NOT NULL, `Chromosome` TEXT NOT NULL UNIQUE, `Description_Line` TEXT NOT NULL UNIQUE, `VMC_Sequence_ID` TEXT NOT NULL)")
 	if err != nil {
 		panic("Could not create needed database table.")
 	}
 
 	// create insert statement
-	stmt, err := db.Prepare("INSERT OR IGNORE INTO VMC_Reference_Sequence(Chromosome, Description_Line, VMC_Sequence_ID) values(?,?,?)")
+	stmt, err := db.Prepare("INSERT OR IGNORE INTO VMC_Reference_Sequence(Chromosome, File_Name, Description_Line, VMC_Sequence_ID) values(?,?,?,?)")
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +61,7 @@ func main() {
 			default:
 				idParts = strings.Fields(string(record.ID))
 			}
-			_, err := stmt.Exec(idParts[0], record.Name, digestID)
+			_, err := stmt.Exec(idParts[0], path.Base(args.Fasta), record.Name, digestID)
 			if err != nil {
 				panic(err)
 			}
