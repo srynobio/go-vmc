@@ -1,12 +1,13 @@
 package main
 
 import (
+	"os"
+	"strings"
+
 	"github.com/alexflint/go-arg"
 	"github.com/brentp/vcfgo"
 	"github.com/brentp/xopen"
 	"github.com/srynobio/go-vmc/vmc"
-	"os"
-	"strings"
 )
 
 func main() {
