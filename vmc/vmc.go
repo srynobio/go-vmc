@@ -14,7 +14,6 @@ type Identifier struct {
 	accession string
 	namespace string
 }
-
 type Interval struct {
 	start uint64
 	end   uint64
