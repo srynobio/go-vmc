@@ -16,7 +16,7 @@ func main() {
 
 	var args struct {
 		Fasta     string `arg:"required,help:Reference fasta file to create VMC_Sequence_ID record."`
-		DATABASE  string `arg:"required,help:Database file to build or add records to."`
+		DATABASE  string `arg:"required,help:Database file to build or add records to. Example: vmc.sequence.db"`
 		Separator string `arg:"help:Separator used to delimit description line (used for chromosome). Values: [bar-separated or space]. Default: [space]"`
 	}
 	arg.MustParse(&args)
@@ -59,6 +59,7 @@ func main() {
 			case "bar-separated":
 				idParts = strings.Split(string(record.ID), "|")
 			default:
+				// Default is space.
 				idParts = strings.Fields(string(record.ID))
 			}
 			_, err := stmt.Exec(idParts[0], path.Base(args.Fasta), record.Name, digestID)
